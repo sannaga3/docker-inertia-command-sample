@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  web:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: ./docker/web/Dockerfile
+    ports:
+      - 8080:80
+    depends_on:
+      - app
+    volumes:
+      - ./src/:/app
+
+  app:
+    container_name: php
+    build:
+      context: .
+      dockerfile: ./docker/app/Dockerfile
+    volumes:
+      - ./src/:/app
+    depends_on:
+      - db
+
+  db:
+    image: mysql:latest
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: lara_doc_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      TZ: Asia/Tokyo
+    ports:
+      - 3309:3306
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ./docker/db/data:/var/lib/mysql
