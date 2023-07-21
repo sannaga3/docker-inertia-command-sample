@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Carbon\Factory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -18,11 +17,19 @@ class TaskTableSeeder extends Seeder
   {
     DB::table('tasks')->insert([
       [
-        'title' => '筋トレ',
-        'content' => '毎日何かしらやる',
+        'title' => 'example title1',
+        'content' => 'example content1',
         'date' => '2023-07-10',
         'finished' => false,
         'published' => true,
+        'user_id' => User::first()->id,
+      ],
+      [
+        'title' => 'example title2',
+        'content' => 'example content2',
+        'date' => '2023-07-24',
+        'finished' => true,
+        'published' => false,
         'user_id' => User::first()->id,
       ],
     ]);
