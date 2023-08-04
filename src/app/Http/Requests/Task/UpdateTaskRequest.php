@@ -4,7 +4,7 @@ namespace App\Http\Requests\Task;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreTaskRequest extends FormRequest
+class UpdateTaskRequest extends FormRequest
 {
   /**
    * Get the validation rules that apply to the request.
@@ -19,7 +19,7 @@ class StoreTaskRequest extends FormRequest
       'content' => ['required', 'string', 'max:100'],
       'finished' => 'boolean',
       'published' => 'boolean',
-      'categories' => 'array'
+      'categoryIds' => 'array'
     ];
   }
 }

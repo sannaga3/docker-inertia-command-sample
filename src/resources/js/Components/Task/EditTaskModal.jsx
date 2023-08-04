@@ -1,18 +1,34 @@
+import { useState } from "react";
 import { useForm } from "@inertiajs/react";
+import Select from "react-select";
 import TextInput from "../TextInput";
 import InputError from "../InputError";
 import Checkbox from "../Checkbox";
 import PrimaryButton from "../PrimaryButton";
 import InputLabel from "../InputLabel";
 
-export default function EditTaskModal({ task, setEditTaskIndex }) {
+export default function EditTaskModal({
+    task,
+    setEditTaskIndex,
+    categories = [],
+}) {
     const { data, setData, patch, processing, errors } = useForm({
         title: task.title,
         content: task.content,
         date: task.date,
         finished: task.finished,
         published: task.published,
+        categoryIds: task.categories.map((category) => category.id),
     });
+
+    const convertedCategoriesToOption = categories.map((category) => {
+        return { value: category.id, label: category.name };
+    });
+    const [selectedValue, setSelectedValue] = useState(
+        task.categories.map((category) => {
+            return { value: category.id, label: category.name };
+        })
+    );
 
     const handleOnChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -26,6 +42,7 @@ export default function EditTaskModal({ task, setEditTaskIndex }) {
 
     const submit = (e) => {
         e.preventDefault();
+
         patch(route("tasks.update", task.id));
         setEditTaskIndex(null);
     };
@@ -119,6 +136,36 @@ export default function EditTaskModal({ task, setEditTaskIndex }) {
                 </div>
                 <div className="mt-2">
                     <PrimaryButton disabled={processing}>submit</PrimaryButton>
+                </div>
+            </div>
+            <div className="grid grid-cols-12 space-x-2 px-3 mx-7 border-b border-gray-700 mt-3 pb-1">
+                <InputLabel
+                    htmlFor="categories"
+                    value="categories"
+                    className="col-span-12"
+                />
+            </div>
+            <div className="grid grid-cols-12 space-x-2 px-3 mx-7 border-b border-gray-700 mt-3 pb-3">
+                <div className="col-span-10">
+                    <Select
+                        className="text-xs"
+                        options={convertedCategoriesToOption}
+                        defaultValue={selectedValue}
+                        onChange={(value) => {
+                            const ids = value.map((obj) => obj.value);
+
+                            if (value) {
+                                setData((prevData) => ({
+                                    ...prevData,
+                                    categoryIds: [...ids],
+                                }));
+                                setSelectedValue([...selectedValue]);
+                            }
+                        }}
+                        closeMenuOnSelect={true}
+                        isMulti
+                    />
+                    <InputError message={errors.categoryIds} className="mb-2" />
                 </div>
             </div>
         </form>

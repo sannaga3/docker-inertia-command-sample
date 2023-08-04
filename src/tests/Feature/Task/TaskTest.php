@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Task;
 
+use App\Models\Category;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,11 +16,24 @@ class TaskTest extends TestCase
     use WithFaker, HasFactory, DatabaseTransactions;
 
     /**
-     * get tasks test.
+     * before running test, make category.
      *
      * @return void
      */
-    public function test_get_tasks()
+    public function setUp(): void
+    {
+        parent::setUp();
+        User::factory()->create();
+        $this->seed('TaskTableSeeder');
+        Category::factory(3)->create();
+    }
+
+    /**
+     * get tasks test.
+     * @test
+     * @return void
+     */
+    public function get_tasks()
     {
         $user = User::first();
 
@@ -59,11 +73,11 @@ class TaskTest extends TestCase
     }
 
     /**
-     * create tasks test.
-     *
+     * store tasks test.
+     * @test
      * @return void
      */
-    public function test_create_task()
+    public function store_task()
     {
         $taskCount = Task::pluck('id')->count();
         $this->assertSame(2, $taskCount);
@@ -80,6 +94,7 @@ class TaskTest extends TestCase
                     'finished' => 0,
                     'published' => 1,
                     'user_id' => $user->id,
+                    'categories' => []
                 ]
             ));
         $response->assertStatus(302);
@@ -100,11 +115,49 @@ class TaskTest extends TestCase
     }
 
     /**
-     * update tasks test.
-     *
+     * store tasks test with taskCategories.
+     * @test
      * @return void
      */
-    public function test_update_task()
+    public function store_task_with_task_categories()
+    {
+        $taskCount = Task::count();
+        $categoryIds = Category::pluck('id');
+        $this->assertSame(2, $taskCount);
+
+        $user = User::first();
+        $response = $this->actingAs($user, 'web')
+            ->post(route(
+                'tasks.store',
+                [
+                    'title' => 'example title3',
+                    'content' => 'example content3',
+                    'date' => '2023-07-25',
+                    'finished' => 0,
+                    'published' => 1,
+                    'user_id' => $user->id,
+                    'categoryIds' => [$categoryIds[0], $categoryIds[1]]
+                ]
+            ));
+        $response->assertStatus(302);
+
+        $response = $this->followingRedirects($response)
+            ->get(route('tasks.index'))
+            ->assertInertia(function (AssertableInertia $page) use ($categoryIds) {
+                $page->component('Task/Index')
+                    ->has('tasks', 3)
+                    ->where('tasks.0.categories.0.id', $categoryIds[0])
+                    ->where('tasks.0.categories.1.id', $categoryIds[1])
+                    ->etc();
+            });
+    }
+
+    /**
+     * update tasks test.
+     * @test
+     * @return void
+     */
+    public function update_task()
     {
         $user = User::first();
         $task = Task::first();
@@ -123,6 +176,7 @@ class TaskTest extends TestCase
                 'date' => '2023-07-26',
                 'finished' => 1,
                 'published' => 0,
+                'categories' => []
             ]);
         $response->assertStatus(302);
 
@@ -141,13 +195,46 @@ class TaskTest extends TestCase
             });
     }
 
+    /**
+     * update tasks test with taskCategories.
+     * @test
+     * @return void
+     */
+    public function update_task_with_task_categories()
+    {
+        $categoryIds = Category::pluck('id');
+        $taskIds = Task::pluck('id');
+        $this->assertCount(2, $taskIds);
+
+        $user = User::first();
+        $response = $this->actingAs($user, 'web')
+            ->patch(route('tasks.update', ['task' => $taskIds[0]]), [
+                'title' => 'updated title',
+                'content' => 'updated content',
+                'date' => '2023-07-26',
+                'finished' => 1,
+                'published' => 0,
+                'categoryIds' => [$categoryIds[0], $categoryIds[1]]
+            ]);
+        $response->assertStatus(302);
+
+        $response = $this->followingRedirects($response)
+            ->get(route('tasks.index'))
+            ->assertInertia(function (AssertableInertia $page) use ($categoryIds) {
+                $page->component('Task/Index')
+                    ->has('tasks', 2)
+                    ->where('tasks.0.categories.0.id', $categoryIds[0])
+                    ->where('tasks.0.categories.1.id', $categoryIds[1])
+                    ->etc();
+            });
+    }
 
     /**
      * delete task test.
-     *
+     * @test
      * @return void
      */
-    public function test_delete_task()
+    public function delete_task()
     {
         $user = User::first();
 

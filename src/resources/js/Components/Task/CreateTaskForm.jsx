@@ -1,11 +1,16 @@
 import { useForm } from "@inertiajs/react";
+import { useState } from "react";
+import Select from "react-select";
 import InputLabel from "../InputLabel";
 import TextInput from "../TextInput";
 import InputError from "../InputError";
 import Checkbox from "../Checkbox";
 import PrimaryButton from "../PrimaryButton";
 
-export default function CreateTaskForm() {
+export default function CreateTaskForm({
+    categories = [],
+    setToggleCreateModal,
+}) {
     const { data, setData, post, processing, errors } = useForm({
         title: "",
         content: "",
@@ -19,7 +24,13 @@ export default function CreateTaskForm() {
             .join("-"),
         finished: false,
         published: true,
+        categoryIds: [],
     });
+
+    const convertedCategoriesToOption = categories.map((category) => {
+        return { value: category.id, label: category.name };
+    });
+    const [selectedValue, setSelectedValue] = useState([]);
 
     const handleOnChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -34,7 +45,18 @@ export default function CreateTaskForm() {
     const submit = (e) => {
         e.preventDefault();
 
-        post(route("tasks.store"));
+        const categoryIds = selectedValue.map((obj) => obj.value);
+
+        setData((prevData) => ({
+            ...prevData,
+            categoryIds: categoryIds,
+        }));
+
+        post(route("tasks.store"), {
+            onSuccess: () => {
+                setToggleCreateModal(false);
+            },
+        });
     };
 
     return (
@@ -84,7 +106,6 @@ export default function CreateTaskForm() {
                     />
                     <InputError message={errors.title} className="mb-2" />
                 </div>
-
                 <div className="col-span-2">
                     <TextInput
                         id="content"
@@ -114,6 +135,29 @@ export default function CreateTaskForm() {
                 </div>
                 <div className="mt-2">
                     <PrimaryButton disabled={processing}>submit</PrimaryButton>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-12 space-x-2 px-3 mx-7 border-b border-gray-700 mt-3 pb-1">
+                <InputLabel
+                    htmlFor="categories"
+                    value="categories"
+                    className="col-span-12"
+                />
+            </div>
+            <div className="grid grid-cols-12 space-x-2 px-3 mx-7 border-b border-gray-700 mt-3 pb-3">
+                <div className="col-span-10">
+                    <Select
+                        className="text-xs"
+                        options={convertedCategoriesToOption}
+                        defaultValue={selectedValue}
+                        onChange={(value) => {
+                            value ? setSelectedValue([...value]) : null;
+                        }}
+                        closeMenuOnSelect={true}
+                        isMulti
+                    />
+                    <InputError message={errors.categoryIds} className="mb-2" />
                 </div>
             </div>
         </form>
