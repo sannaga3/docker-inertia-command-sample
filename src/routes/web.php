@@ -38,6 +38,13 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('/tasks', TaskController::class)->except(['show', 'create', 'edit']);
     Route::resource('/categories', CategoryController::class)->except(['show', 'create', 'edit']);
+
+    Route::prefix('categories')->group(function () {
+        Route::post('/keep_cache', [CategoryController::class, 'keepCache'])->name('categories.keep_cache');
+        Route::get('/cache_list', [CategoryController::class, 'getCache'])->name('categories.cache_list');
+        Route::post('/insert_cache', [CategoryController::class, 'insertCache'])->name('categories.insert_cache');
+        Route::post('/clear_cache', [CategoryController::class, 'clearCache'])->name('categories.clear_cache');
+    });
 });
 
 require __DIR__ . '/auth.php';

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
 {
@@ -41,8 +42,8 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $names = $request->all();
-        $timestamp = Carbon::now()->format('Y-m-d H:i:s');
 
+        $errors = [];
         foreach ($names as $name) {
             $validator = $this->validateName($name);
 
@@ -59,32 +60,17 @@ class CategoryController extends Controller
                 ->setStatusCode(400);
         }
 
-        $convertedRequest = [];
-        foreach ($names as $name) {
-            $convertedRequest[] = [
-                'name' => $name,
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp
-            ];
-        }
+        $errorMessage = $this->bulkInsert($names);
 
-        DB::beginTransaction();
-        try {
-            Category::insert($convertedRequest);
-            DB::commit();
-        } catch (Exception $e) {
-            DB::rollback();
+        if (isset($errorMessage)) {
+            $error = '';
+            if (false !== strpos($errorMessage, 'Duplicate entry'))
+                $error = "The name field has a duplicate value.";
+            else
+                $error = "The name field is required.";
 
             $categories = Category::orderBy('id', 'desc')->get();
-            $error = $e->getMessage();
-
-            $errors = '';
-            if (false !== strpos($error, 'Duplicate entry'))
-                $errors = ["The name field has a duplicate value."];
-            else
-                $errors = ["The name field is required."];
-
-            return Inertia::render('Category/Index', ['categories' => $categories, 'errors' => $errors, 'prevRequestData' => $request])
+            return Inertia::render('Category/Index', ['categories' => $categories, 'errors' => [$error], 'prevRequestData' => $request])
                 ->toResponse($request)
                 ->setStatusCode(400);
         }
@@ -147,5 +133,113 @@ class CategoryController extends Controller
             'name' => 'required|unique:categories',
         ]);
         return $validator;
+    }
+
+    /**
+     * Keep the specified resource into the cache.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function keepCache(Request $request)
+    {
+        $cacheData = $request->all();
+
+        $errors = [];
+        foreach ($cacheData as $data) {
+            $validator = $this->validateName($data);
+
+            if ($validator->fails()) {
+                $errors[] = $validator->errors();
+            }
+        }
+        if (empty($errors)) {
+            Cache::forever('categories', $cacheData);
+        } else {
+            $categories = Category::orderBy('id', 'desc')->get();
+
+            return Inertia::render('Category/Index', ['categories' => $categories, 'errors' => $errors, 'prevRequestData' => $request])
+                ->toResponse($request)
+                ->setStatusCode(400);
+        }
+
+        return to_route('categories.index');
+    }
+
+    /**
+     * Get the specified resource into the cache.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getCache()
+    {
+        $cacheData = Cache::get('categories');
+
+        $names = [];
+        if (empty($cacheData))
+            return Inertia::render('Category/CacheList', ['cacheData' => []]);
+        else
+            $names = array_values($cacheData);
+
+        return Inertia::render('Category/CacheList', ['cacheData' => $names]);
+    }
+
+    /**
+     * insert the specified resource into the cache.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function insertCache()
+    {
+        $cacheData = Cache::get('categories');
+
+        if (!isset($cacheData))
+            Inertia::render('Category/CacheList');
+
+        $error = $this->bulkInsert($cacheData);
+
+        if (empty($error))
+            Cache::forget('categories');
+
+        return to_route('categories.cache_list');
+    }
+
+    /**
+     * Clear the specified resource into the cache.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function clearCache()
+    {
+        Cache::forget('categories');
+        return to_route('categories.cache_list');
+    }
+
+    /**
+     * Clear the specified resource into the cache.
+     * @param array
+     * @return string
+     */
+    public function bulkInsert($dataArr)
+    {
+        $convertedData = [];
+        $timestamp = Carbon::now()->format('Y-m-d H:i:s');
+        foreach ($dataArr as $data) {
+            $convertedData[] = [
+                'name' => $data,
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp
+            ];
+        }
+
+        DB::beginTransaction();
+        try {
+            Category::insert($convertedData);
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollback();
+            $error = $e->getMessage();
+            return $error;
+        }
     }
 }

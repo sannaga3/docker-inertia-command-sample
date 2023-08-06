@@ -1,4 +1,4 @@
-import { useForm } from "@inertiajs/react";
+import { Link, useForm } from "@inertiajs/react";
 import InputLabel from "../InputLabel";
 import TextInput from "../TextInput";
 import InputError from "../InputError";
@@ -50,14 +50,40 @@ export default function CreateCategoryForm({
         });
     };
 
+    const keepCache = () => {
+        post(route("categories.keep_cache"), {
+            onSuccess: () => {
+                setFormLength(1);
+                setData(() => ({
+                    name_0: "",
+                }));
+            },
+        });
+    };
+
     return (
         <form onSubmit={submit} className="flex flex-col px-10">
-            <div className="flex border-b border-gray-700 mx-7 mt-3 px-20 pb-1">
+            <div className="flex justify-between border-b border-gray-700 mx-7 mt-3 px-20 pb-1">
                 <InputLabel
                     htmlFor="name"
                     value="new Category"
                     className="col-start-2 col-span-2"
                 />
+                <div className="space-x-5">
+                    <button
+                        type="button"
+                        onClick={keepCache}
+                        className="font-medium text-sm text-gray-700"
+                    >
+                        keep
+                    </button>
+                    <Link
+                        href={route("categories.cache_list")}
+                        className="font-medium text-sm text-gray-700"
+                    >
+                        show
+                    </Link>
+                </div>
             </div>
             <div className="flex flex-col justify-center border-b border-gray-700 mx-7 mt-3 px-20">
                 <div className="flex items-center space-x-3">
