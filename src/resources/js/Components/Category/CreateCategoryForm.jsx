@@ -61,6 +61,17 @@ export default function CreateCategoryForm({
         });
     };
 
+    const stockQueue = () => {
+        post(route("categories.stock_queue"), {
+            onSuccess: () => {
+                setFormLength(1);
+                setData(() => ({
+                    name_0: "",
+                }));
+            },
+        });
+    };
+
     return (
         <form onSubmit={submit} className="flex flex-col px-10">
             <div className="flex justify-between border-b border-gray-700 mx-7 mt-3 px-20 pb-1">
@@ -69,20 +80,38 @@ export default function CreateCategoryForm({
                     value="new Category"
                     className="col-start-2 col-span-2"
                 />
-                <div className="space-x-5">
-                    <button
-                        type="button"
-                        onClick={keepCache}
-                        className="font-medium text-sm text-gray-700"
-                    >
-                        keep
-                    </button>
-                    <Link
-                        href={route("categories.cache_list")}
-                        className="font-medium text-sm text-gray-700"
-                    >
-                        show
-                    </Link>
+                <div className="flex space-x-8">
+                    <div className="space-x-5">
+                        <button
+                            type="button"
+                            onClick={keepCache}
+                            className="font-medium text-sm text-gray-700"
+                        >
+                            keepCache
+                        </button>
+                        <Link
+                            href={route("categories.cache_list")}
+                            className="font-medium text-sm text-gray-700"
+                        >
+                            showCache
+                        </Link>
+                    </div>
+                    <div className="space-x-5">
+                        <button
+                            type="button"
+                            onClick={stockQueue}
+                            className="font-medium text-sm text-gray-700"
+                        >
+                            stockQueue
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => post(route("categories.work_queue"))}
+                            className="font-medium text-sm text-gray-700"
+                        >
+                            workQueue
+                        </button>
+                    </div>
                 </div>
             </div>
             <div className="flex flex-col justify-center border-b border-gray-700 mx-7 mt-3 px-20">

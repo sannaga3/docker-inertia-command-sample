@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\Job\CategoryJobController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -42,8 +43,10 @@ Route::middleware('auth')->group(function () {
     Route::prefix('categories')->group(function () {
         Route::post('/keep_cache', [CategoryController::class, 'keepCache'])->name('categories.keep_cache');
         Route::get('/cache_list', [CategoryController::class, 'getCache'])->name('categories.cache_list');
-        Route::post('/insert_cache', [CategoryController::class, 'insertCache'])->name('categories.insert_cache');
+        Route::post('/insert_cache', [CategoryController::class, 'insertCategoriesFromCache'])->name('categories.insert_cache');
         Route::post('/clear_cache', [CategoryController::class, 'clearCache'])->name('categories.clear_cache');
+        Route::post('/stock_queue', [CategoryJobController::class, 'stockCategories'])->name('categories.stock_queue');
+        Route::post('/work_queue', [CategoryJobController::class, 'storeCategoriesByQueue'])->name('categories.work_queue');
     });
 });
 

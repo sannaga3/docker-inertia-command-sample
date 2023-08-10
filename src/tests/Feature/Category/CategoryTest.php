@@ -103,7 +103,7 @@ class CategoryTest extends TestCase
                         ->has('categories', 2)
                         ->has('errors', 1)
                         ->where('prevRequestData', $param)
-                        ->where('errors.0', $errorMessage)
+                        ->where('errors.0.name.0', $errorMessage)
                         ->etc();
                 });
         } else if ($case === 'store success') {

@@ -19,7 +19,7 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Inertia\Response
      */
     public function index()
     {
@@ -54,7 +54,7 @@ class TaskController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Task\StoreTaskRequest  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(StoreTaskRequest $request)
     {
@@ -90,7 +90,7 @@ class TaskController extends Controller
      *
      * @param  \Illuminate\Http\Task\UpdateTaskRequest $request
      * @param  Task $task
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(UpdateTaskRequest $request, Task $task)
     {
@@ -146,7 +146,7 @@ class TaskController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  Task $task
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(Task $task)
     {
