@@ -1,0 +1,26 @@
+name: Test
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "npm"
+      - uses: actions/checkout@v3
+        run: |
+          docker-compose up -d
+      - name: composer install
+        run: |
+          docker-compose exec -T php bash -c "composer install"
+      - name: phpunit
+        run: |
+          docker-compose exec -T php bash -c "php vendor/bin/phpunit"
