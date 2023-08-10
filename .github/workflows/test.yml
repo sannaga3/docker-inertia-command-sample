@@ -11,16 +11,16 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 18.x
           cache: "npm"
-      - uses: actions/checkout@v3
-        run: |
-          docker-compose up -d
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Start Docker services
+        run: docker-compose up -d
       - name: composer install
-        run: |
-          docker-compose exec -T php bash -c "composer install"
-      - name: phpunit
-        run: |
-          docker-compose exec -T php bash -c "php vendor/bin/phpunit"
+        run: docker-compose exec -T php bash -c "composer install"
+      - name: Run PHPUnit
+        run: docker-compose exec -T php bash -c "php vendor/bin/phpunit"
