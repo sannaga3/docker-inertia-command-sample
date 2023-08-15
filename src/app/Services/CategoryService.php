@@ -35,7 +35,7 @@ class CategoryService
    * Store a newly created resource in storage.
    *
    * @param array $names
-   * @return array|string $errors
+   * @return array|null $errors
    */
   public function storeCategories($names)
   {
@@ -69,7 +69,7 @@ class CategoryService
    *
    * @param \Illuminate\Http\Request $request
    * @param App\Models\Category $category
-   * @return \Illuminate\Support\MessageBag $errors
+   * @return \Illuminate\Support\MessageBag|null $errors
    */
   public function updateCategory(Request $request, Category $category)
   {
@@ -117,7 +117,7 @@ class CategoryService
   /**
    * Clear the specified resource into the cache.
    * @param array
-   * @return string
+   * @return string|null
    */
   public function bulkInsert($dataArr)
   {
